@@ -1,0 +1,49 @@
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  labels:
+    app: nginx
+  name: nginx
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: nginx
+      labels:
+        app: nginx
+    spec:
+      volumes:
+        - name: nginx-conf
+          configMap:
+            name: nginx-conf
+            items:
+            - key: nginx.conf
+              path: nginx.conf
+        - name: nginx-sites-enabled-conf
+          configMap:
+            name: nginx-sites-enabled-conf
+        - name: www-data
+          persistentVolumeClaim:
+            claimName: www-data-pv-claim
+      containers:
+        - name: nginx
+          image: nginx:mainline-alpine
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+            - containerPort: 443
+          volumeMounts:
+            - name: nginx-conf
+              mountPath: /etc/nginx
+            - name: nginx-sites-enabled-conf
+              mountPath: /etc/nginx/sites-enabled
+            - name: www-data
+              mountPath: /var/www
+          resources:
+            requests:
+              memory: "200Mi"
+              cpu: "250m"
+            limits:
+              memory: "500Mi"
+              cpu: "400m"
